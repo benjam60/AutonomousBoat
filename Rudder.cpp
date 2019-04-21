@@ -12,6 +12,7 @@ class Rudder { //make singleton because there is only one
    const int StraightAheadInDegrees = 90;
    const int ArduinoPinNumber = 2;
    Servo rudderServo;
+   int currentDirectionInDegrees = StraightAheadInDegrees;
 
    public:
    Rudder(Servo myServo) {
@@ -24,6 +25,11 @@ class Rudder { //make singleton because there is only one
     rudderServo.write(positionInDegrees);
     int requiredLatencyBetweenMoves = 10;
     delay(requiredLatencyBetweenMoves);
+    currentDirectionInDegrees = positionInDegrees;
+   }
+
+   int getCurrentPosition() {
+	  return currentDirectionInDegrees;
    }
 
 };
