@@ -23,13 +23,15 @@ class Rudder { //make singleton because there is only one
 
    void movePosition(int positionInDegrees) { //TODO: Add input constraints
     rudderServo.write(positionInDegrees);
-    int requiredLatencyBetweenMoves = 10;
+    const int requiredLatencyBetweenMoves = 10;
     delay(requiredLatencyBetweenMoves);
     currentDirectionInDegrees = positionInDegrees;
    }
 
    int getCurrentPosition() {
-	  return currentDirectionInDegrees;
+	   //rudderServo.read() should be equal, good test
+	   //what if the servo fails-- how would you know?
+	  return rudderServo.read();
    }
 
 };
