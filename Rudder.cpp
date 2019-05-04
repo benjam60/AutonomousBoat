@@ -4,6 +4,8 @@
  *  Created on: Apr 21, 2019
  *      Author: ben
  */
+#ifndef RUDDER_CPP
+#define RUDDER_CPP
 #include <Arduino.h>
 #include <Servo.h>
 
@@ -35,4 +37,4 @@ class Rudder { //make singleton because there is only one
    }
 
 };
-
+#endif

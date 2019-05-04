@@ -1,27 +1,24 @@
+#ifndef GPS_CPP
+#define GPS_CPP
+
 #include <Arduino.h>
 #include <SoftwareSerial.h>
-
-class SystemGPS {
-public:
-	virtual String readData() = 0;
-	virtual ~SystemGPS() { }
-};
+#include "SystemGPS.cpp"
 
 
 class GPS : public SystemGPS {
 public:
-	GPS(int rxPinNumber, int txPinNumber) {
-		boolean hasInverseLogic = false;
-		softwareSerial = new SoftwareSerial(rxPinNumber, txPinNumber, hasInverseLogic);
+	GPS(int rx, int tx) : softwareSerial(SoftwareSerial(rx,tx)) {
 		Serial.begin(BaudRate);
-		softwareSerial->begin(BaudRate);
+		softwareSerial.begin(BaudRate);
 	}
 
-	String readData() {
-		return softwareSerial->readString();
-	}
+
+	char * waitAndReadData() { return softwareSerial.readString().c_str(); }
 
 private:
 	const int BaudRate = 9600;
-	SoftwareSerial * softwareSerial = NULL;
+	SoftwareSerial softwareSerial;
 };
+
+#endif
