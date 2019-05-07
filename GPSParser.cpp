@@ -2,7 +2,7 @@
 #define GPS_CPP
 #include "SystemGPS.cpp"
 #include <string.h>
-#include <stdlib.h>     /* atof */
+#include <stdlib.h>
 #include <stdio.h>
 
 struct GPSCoordinates {
