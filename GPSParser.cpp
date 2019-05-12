@@ -21,8 +21,10 @@ public:
 	   struct GPSCoordinates gpsCoordinates;
 	   while (gpsCoordinates.latitude == -1.0f) {
 		   char * gpsInput = gps->waitAndReadData();
-		   float latitude = atof(getCSVEntry(gpsInput, 3));
-		   gpsCoordinates.latitude = latitude;
+		   if (strstr(gpsInput, "$GPRMC") != NULL) {
+			   float latitude = atof(getCSVEntry(gpsInput, 3));
+			   gpsCoordinates.latitude = latitude;
+		   }
 	   }
 	   return gpsCoordinates;
 	}
