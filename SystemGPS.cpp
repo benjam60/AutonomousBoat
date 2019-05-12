@@ -3,7 +3,7 @@
 
 class SystemGPS {
 public:
-	virtual const char * waitAndReadData() = 0;
+	virtual char * waitAndReadData() = 0;
 	virtual ~SystemGPS() { }
 };
 #endif

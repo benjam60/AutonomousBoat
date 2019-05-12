@@ -5,22 +5,21 @@
 #include <stdlib.h>
 #include <stdio.h>
 
+
 class TestGPS : public SystemGPS {
 public:
-	TestGPS(char ** input, int numSentences) {
+	TestGPS(char input[2][150], int numSentences) {
 		for (int i = 0; i < numSentences; ++i) {
 			strcpy(gpsInput[i], input[i]);
-//			gpsInput[i] = new char[strlen(input[i]) + 1];
-//			strcpy(gpsInput[i], input[i]);
 		}
 	}
 
-	const char * waitAndReadData() {
+	char * waitAndReadData() {
 		return gpsInput[numNmeaSentencesRead++];
 	}
 private:
 	int numNmeaSentencesRead = 0;
-	char gpsInput[][150];
+	char gpsInput[2][150];
 };
 
 #endif

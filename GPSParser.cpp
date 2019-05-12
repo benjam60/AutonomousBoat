@@ -6,39 +6,43 @@
 #include <stdio.h>
 
 struct GPSCoordinates {
-	float latitude;
+	float latitude = -1.0f;
 };
 
-
+//TODO BE: cleanup memory
 class GPSParser {
 	SystemGPS * gps;
-
+	char NOENTRY[5] = "-1.0";
+	const int NoEntrySize = 1;
 public:
 	GPSParser(SystemGPS * gpsIn) : gps(gpsIn) { }
 
 	struct GPSCoordinates waitAndGetNextPosition() {
-	   const char * gpsInput = gps->waitAndReadData();
-	   char * gpsInput1 = new char[strlen(gpsInput) + 1];
-	   strcpy(gpsInput1, gpsInput);
-	   float latitude = atof(getCSVEntry(gpsInput1, 3));
 	   struct GPSCoordinates gpsCoordinates;
-	   gpsCoordinates.latitude = latitude;
+	   while (gpsCoordinates.latitude == -1.0f) {
+		   char * gpsInput = gps->waitAndReadData();
+		   float latitude = atof(getCSVEntry(gpsInput, 3));
+		   gpsCoordinates.latitude = latitude;
+	   }
 	   return gpsCoordinates;
 	}
 
-	const char * getCSVEntry(char * csvRow, int nth) {
+	char * getCSVEntry(char * csvRow, int nth) {
 		const char * startingIndexOfEntry = getIndexOfComma(csvRow, nth); //if (nth == 0) 0 else
 		const char * endingIndexOfEntry = getIndexOfComma(csvRow, nth+1); //account for /n/r at end
 		int entrySize = endingIndexOfEntry - startingIndexOfEntry;
-		char * outputBuffer = new char[entrySize];
-		strncpy(outputBuffer, startingIndexOfEntry + 1, entrySize - 1); //handle minus and place one in case empty or 1 char
-		return outputBuffer;
+		if (entrySize == NoEntrySize) { return NOENTRY; }
+		else {
+			char * outputBuffer = new char[entrySize];
+			strncpy(outputBuffer, startingIndexOfEntry + 1, entrySize - 1); //handle minus and place one in case empty or 1 char
+			return outputBuffer;
+		}
 	}
 
     const char * getIndexOfComma(char * csvRow, int nth) {
 		int numOfCommasSeen = 0;
 		for(char * index = csvRow; (char)index[0] != '\n'; ++index) { //handle wrong input
-			if (index[0] == ',') ++numOfCommasSeen;
+			if ((char)index[0] == ',') ++numOfCommasSeen;
 			if (numOfCommasSeen == nth) return index;
 		}
 		return nullptr; //handle
