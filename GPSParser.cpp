@@ -11,6 +11,8 @@ struct GPSCoordinates {
 	float latitude = -1.0f;
 	float longitude = -1.0f;
 	char northOrSouth = 'U'; //macros? for undefined north and south
+	GPSCoordinates() { }
+	GPSCoordinates(float lat, float longi, char nors) : latitude(lat), longitude(longi), northOrSouth(nors) { }
 };
 
 //TODO BE: assert only one message per read and Add asserts nth != 0
@@ -20,15 +22,13 @@ public:
 
 	struct GPSCoordinates waitAndGetNextPosition() {
 	   struct GPSCoordinates gpsCoordinates;
-	   while (-1.0f == gpsCoordinates.latitude || -1.0f == gpsCoordinates.longitude || !isValidLatitudeDirection(gpsCoordinates.northOrSouth)) {
+	   while (!successfullyGotAllFields(gpsCoordinates)) {
 		   const char * nmeaSentence = gps->waitAndReadData();
 		   if ((strstr(nmeaSentence, "$GPRMC") != NULL) && gprmcNmeaMessageIsValid(nmeaSentence)) {
 			   char * latitude = getCSVEntry(nmeaSentence, IndexOfCommaForLatitude);
 			   char * longitude = getCSVEntry(nmeaSentence, IndexOfCommaForLongitude);
 			   char * longitudeDirection = getCSVEntry(nmeaSentence, IndexOfCommaForNorthSouth); //clear memory
-			   gpsCoordinates.latitude = atof(latitude);
-			   gpsCoordinates.longitude = atof(longitude);
-			   gpsCoordinates.northOrSouth = (char)longitudeDirection[0];
+			   gpsCoordinates = GPSCoordinates(atof(latitude), atof(longitude), longitudeDirection[0]);
 			   delete latitude;
 			   delete longitude;
 			   delete longitudeDirection;
@@ -70,6 +70,10 @@ private:
 		}
 		return NULL; //handle
 	}
+
+    const bool successfullyGotAllFields(const struct GPSCoordinates gpsCoordinates) {
+    	return -1.0f != gpsCoordinates.latitude && -1.0f != gpsCoordinates.longitude && isValidLatitudeDirection(gpsCoordinates.northOrSouth);
+    }
 
     const bool isValidLatitudeDirection(const char direction) const { return 'N' == direction || 'S' == direction; }
 
