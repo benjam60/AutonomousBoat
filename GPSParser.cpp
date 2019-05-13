@@ -7,23 +7,25 @@
 
 struct GPSCoordinates {
 	float latitude = -1.0f;
+	float longitude = -1.0f;
 };
 
-//TODO BE: cleanup memory
-//TODO BE: assert only one message per read
-//TODO BE: Add asserts nth != 0
+//TODO BE: assert only one message per read and Add asserts nth != 0
 class GPSParser {
 public:
 	GPSParser(SystemGPS * gpsIn) : gps(gpsIn) { }
 
 	struct GPSCoordinates waitAndGetNextPosition() {
 	   struct GPSCoordinates gpsCoordinates;
-	   while (gpsCoordinates.latitude == -1.0f) {
+	   while (-1.0f == gpsCoordinates.latitude || -1.0f == gpsCoordinates.longitude) {
 		   const char * nmeaSentence = gps->waitAndReadData();
 		   if ((strstr(nmeaSentence, "$GPRMC") != NULL) && gprmcNmeaMessageIsValid(nmeaSentence)) {
 			   char * latitude = getCSVEntry(nmeaSentence, IndexOfCommaForLatitude);
+			   char * longitude = getCSVEntry(nmeaSentence, IndexOfCommaForLongitude);
 			   gpsCoordinates.latitude = atof(latitude);
+			   gpsCoordinates.longitude = atof(longitude);
 			   delete latitude;
+			   delete longitude;
 		   }
 	   }
 	   return gpsCoordinates;
@@ -33,7 +35,7 @@ private:
 	const bool gprmcNmeaMessageIsValid(const char * const nmeaMessage) const {
 		int numCommas = 0;
 		const int NmeaMessageLength = strlen(nmeaMessage);
-		for (int i = 0; i < NmeaMessageLength; ++i) { //TODO: do not go on forever
+		for (int i = 0; i < NmeaMessageLength; ++i) {
 			if (nmeaMessage[i] == ',') { ++numCommas; }
 		}
 		const int ExpectedCommas = 12;
@@ -54,17 +56,18 @@ private:
 		}
 	}
 
-    const char * findComma(const char * csvRow, int nth) const { //TODO BE: find out if should be passing in const pointer
+    const char * findComma(const char * csvRow, const int nth) const { //TODO BE: find out if should be passing in const pointer
 		int numOfCommasSeen = 0;
-		for(const char * index = csvRow; (char)index[0] != '\0'; ++index) { //handle wrong input
+		for(const char * index = csvRow; index[0] != '\0'; ++index) { //handle wrong input
 			if (',' == index[0]) ++numOfCommasSeen;
 			if (numOfCommasSeen == nth) return index;
 		}
 		return NULL; //handle
 	}
 
-	SystemGPS * gps;
+	SystemGPS * gps = NULL;
 	const int IndexOfCommaForLatitude = 3;
+	const int IndexOfCommaForLongitude = 5;
 };
 
 #endif
