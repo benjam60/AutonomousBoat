@@ -3,8 +3,9 @@
 
 #include <Arduino.h>
 #include <SoftwareSerial.h>
-#include "SystemGPS.cpp"
 #include <WString.h>
+
+#include "SystemGPS.cpp"
 
 
 class GPS : public SystemGPS {

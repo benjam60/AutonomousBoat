@@ -1,9 +1,10 @@
 #ifndef TESTGPS_CPP
 #define TESTGPS_CPP
-#include "../SystemGPS.cpp"
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+
+#include "../SystemGPS.cpp"
 
 
 class TestGPS : public SystemGPS {
