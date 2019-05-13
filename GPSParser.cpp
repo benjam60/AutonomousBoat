@@ -10,6 +10,7 @@ struct GPSCoordinates {
 };
 
 //TODO BE: cleanup memory
+//TODO BE: assert only one message per read
 class GPSParser {
 	SystemGPS * gps;
 	char NOENTRY[5] = "-1.0";
@@ -21,7 +22,7 @@ public:
 	   struct GPSCoordinates gpsCoordinates;
 	   while (gpsCoordinates.latitude == -1.0f) {
 		   char * gpsInput = gps->waitAndReadData();
-		   if (strstr(gpsInput, "$GPRMC") != NULL) {
+		   if ((strstr(gpsInput, "$GPRMC") != NULL) && gprmcNmeaMessageIsValid(gpsInput)) {
 			   float latitude = atof(getCSVEntry(gpsInput, 3));
 			   gpsCoordinates.latitude = latitude;
 		   }
@@ -29,8 +30,18 @@ public:
 	   return gpsCoordinates;
 	}
 
+	bool gprmcNmeaMessageIsValid(const char * nmeaMessage) {
+		int numCommas = 0;
+		for (int i = 0; i < strlen(nmeaMessage); ++i) { //TODO: do not go on forever
+			if (nmeaMessage[i] == ',') { ++numCommas; }
+		}
+		const int ExpectedCommas = 12;
+		return (numCommas == ExpectedCommas);
+	}
+
 	char * getCSVEntry(char * csvRow, int nth) {
-		const char * startingIndexOfEntry = getIndexOfComma(csvRow, nth); //if (nth == 0) 0 else
+		//assert(nth != 0);
+		const char * startingIndexOfEntry = getIndexOfComma(csvRow, nth);
 		const char * endingIndexOfEntry = getIndexOfComma(csvRow, nth+1); //account for /n/r at end
 		int entrySize = endingIndexOfEntry - startingIndexOfEntry;
 		if (entrySize == NoEntrySize) { return NOENTRY; }
