@@ -24,7 +24,7 @@ public:
 	   struct GPSCoordinates gpsCoordinates;
 	   while (!successfullyGotAllFields(gpsCoordinates)) {
 		   const char * nmeaSentence = gps->waitAndReadData();
-		   if ((strstr(nmeaSentence, "$GPRMC") != NULL) && gprmcNmeaMessageIsValid(nmeaSentence)) {
+		   if (isValidGPRMCNmeaMessage(nmeaSentence)) {
 			   char * latitude = getCSVEntry(nmeaSentence, IndexOfCommaForLatitude);
 			   char * longitude = getCSVEntry(nmeaSentence, IndexOfCommaForLongitude);
 			   char * longitudeDirection = getCSVEntry(nmeaSentence, IndexOfCommaForNorthSouth); //clear memory
@@ -38,7 +38,7 @@ public:
 	}
 
 private:
-	const bool gprmcNmeaMessageIsValid(const char * const nmeaMessage) const {
+	const bool isValidGPRMCNmeaMessage(const char * nmeaMessage) const {
 		int numCommas = 0;
 		const int NmeaMessageLength = strlen(nmeaMessage);
 		for (int i = 0; i < NmeaMessageLength; ++i) {
@@ -46,7 +46,7 @@ private:
 		}
 		const int ExpectedCommas = 12;
 		char messageStatus = getCSVEntry(nmeaMessage, IndexOfCommaForMessageStatus)[0]; //DELETE
-		return ExpectedCommas == numCommas && 'A' == messageStatus;
+		return ExpectedCommas == numCommas && 'A' == messageStatus && strstr(nmeaMessage, "$GPRMC") != NULL;
 	}
 
 	char * getCSVEntry(const char * csvRow, const int nth) const {

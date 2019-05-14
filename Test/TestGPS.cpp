@@ -9,7 +9,7 @@
 
 class TestGPS : public SystemGPS {
 public:
-	TestGPS(char input[2][150], int numSentences) {
+	TestGPS(char input[10][150], int numSentences) {
 		for (int i = 0; i < numSentences; ++i) {
 			strcpy(gpsInput[i], input[i]);
 		}
@@ -20,7 +20,7 @@ public:
 	}
 private:
 	int numNmeaSentencesRead = 0;
-	char gpsInput[2][150];
+	char gpsInput[10][150];
 };
 
 #endif
