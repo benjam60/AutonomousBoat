@@ -45,7 +45,8 @@ private:
 			if (nmeaMessage[i] == ',') { ++numCommas; }
 		}
 		const int ExpectedCommas = 12;
-		return ExpectedCommas == numCommas;
+		char messageStatus = getCSVEntry(nmeaMessage, IndexOfCommaForMessageStatus)[0]; //DELETE
+		return ExpectedCommas == numCommas && 'A' == messageStatus;
 	}
 
 	char * getCSVEntry(const char * csvRow, const int nth) const {
@@ -86,6 +87,7 @@ private:
 //    }
 
 	SystemGPS * gps = NULL;
+	const int IndexOfCommaForMessageStatus = 2;
 	const int IndexOfCommaForLatitude = 3;
 	const int IndexOfCommaForNorthSouth = 4;
 	const int IndexOfCommaForLongitude = 5;
