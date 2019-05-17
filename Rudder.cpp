@@ -11,7 +11,6 @@
 
 
 class Rudder { //make singleton because there is only one
-   const int StraightAheadInDegrees = 90;
    const int ArduinoPinNumber = 2;
    Servo rudderServo;
    int currentDirectionInDegrees = StraightAheadInDegrees;
@@ -35,6 +34,8 @@ class Rudder { //make singleton because there is only one
 	   //what if the servo fails-- how would you know?
 	  return rudderServo.read();
    }
+
+   const int StraightAheadInDegrees = 90;
 
 };
 #endif

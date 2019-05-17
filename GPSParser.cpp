@@ -5,9 +5,10 @@
 #include <stdio.h>
 #include <ctype.h>
 //#include <assert.h> //TO REMOVE AFTER INITIAL TESTS!!!
+//make north and south positive and negative...but then need to check zero
 
 
-#include "SystemGPS.cpp"
+#include "OverrideableGPS.cpp"
 
 #define UNDEFINED_COORDINATE -1.0f;
 #define UNDEFINED_DIRECTION 'U';
@@ -24,7 +25,7 @@ struct GPSCoordinates {
 //TODO BE: assert only one message per read and Add asserts nth != 0
 class GPSParser {
 public:
-	GPSParser(SystemGPS * gpsIn) : gps(gpsIn) { }
+	GPSParser(OverrideableGPS * gpsIn) : gps(gpsIn) { }
 
 	struct GPSCoordinates waitAndGetNextPosition() {
 	   struct GPSCoordinates gpsCoordinates;
@@ -90,7 +91,7 @@ private:
     const bool isValidLongitudeDirection(const char direction) const { return 'W' == direction || 'E' == direction; }
 
 
-	SystemGPS * gps = NULL;
+	OverrideableGPS * gps = NULL;
 	const int IndexOfCommaForMessageStatus = 2;
 	const int IndexOfCommaForLatitude = 3;
 	const int IndexOfCommaForNorthSouth = 4;

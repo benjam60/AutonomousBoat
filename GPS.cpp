@@ -5,10 +5,10 @@
 #include <SoftwareSerial.h>
 #include <WString.h>
 
-#include "SystemGPS.cpp"
+#include "OverrideableGPS.cpp"
 
 
-class GPS : public SystemGPS {
+class GPS : public OverrideableGPS {
 public:
 	GPS(int rx, int tx) : softwareSerial(SoftwareSerial(rx,tx)) {
 		Serial.begin(BaudRate);

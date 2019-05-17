@@ -4,10 +4,10 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "../SystemGPS.cpp"
+#include "../OverrideableGPS.cpp"
 
 
-class TestGPS : public SystemGPS {
+class TestGPS : public OverrideableGPS {
 public:
 	TestGPS(char input[10][150], int numSentences) {
 		for (int i = 0; i < numSentences; ++i) {
