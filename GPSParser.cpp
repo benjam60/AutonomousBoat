@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
-#include <assert.h> //TO REMOVE AFTER INITIAL TESTS!!!
+//#include <assert.h> //TO REMOVE AFTER INITIAL TESTS!!!
 
 
 #include "SystemGPS.cpp"
