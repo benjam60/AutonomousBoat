@@ -4,16 +4,21 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <assert.h> //TO REMOVE AFTER INITIAL TESTS!!!
+
 
 #include "SystemGPS.cpp"
 
+#define UNDEFINED_COORDINATE -1.0f;
+#define UNDEFINED_DIRECTION 'U';
+
 struct GPSCoordinates {
-	float latitude = -1.0f;
-	float longitude = -1.0f;
-	char northOrSouth = 'U'; //macros? for undefined north and south
-	char westOrEast = 'U';
+	float latitude = UNDEFINED_COORDINATE;
+	float longitude = UNDEFINED_COORDINATE;
+	char northOrSouth = UNDEFINED_DIRECTION; //macros? for undefined north and south
+	char westOrEast = UNDEFINED_DIRECTION;
 	GPSCoordinates() { }
-	GPSCoordinates(float lat, float longi, char nors, char eorw) : latitude(lat), longitude(longi), northOrSouth(nors), westOrEast(eorw) { }
+	GPSCoordinates(float lat, float lon, char NS, char WE) : latitude(lat), longitude(lon), northOrSouth(NS), westOrEast(WE) { }
 };
 
 //TODO BE: assert only one message per read and Add asserts nth != 0
@@ -26,15 +31,11 @@ public:
 	   while (!successfullyGotAllFields(gpsCoordinates)) {
 		   const char * nmeaSentence = gps->waitAndReadData();
 		   if (isValidGPRMCNmeaMessage(nmeaSentence)) {
-			   char * latitude = getCSVEntry(nmeaSentence, IndexOfCommaForLatitude);
-			   char * longitude = getCSVEntry(nmeaSentence, IndexOfCommaForLongitude);
-			   char * longitudeDirection = getCSVEntry(nmeaSentence, IndexOfCommaForNorthSouth); //clear memory
-			   char * lattitudeDirection = getCSVEntry(nmeaSentence, IndexOfCommaForWestOrEast); //clear memory
-			   gpsCoordinates = GPSCoordinates(atof(latitude), atof(longitude), longitudeDirection[0], lattitudeDirection[0]);
-			   delete latitude;
-			   delete longitude;
-			   delete longitudeDirection;
-			   delete lattitudeDirection;
+			   float latitude = getCSVEntry(nmeaSentence, IndexOfCommaForLatitude);
+			   float longitude = getCSVEntry(nmeaSentence, IndexOfCommaForLongitude);
+			   const char longitudeDirection = getCSVEntryChar(nmeaSentence, IndexOfCommaForNorthSouth);
+			   const char lattitudeDirection = getCSVEntryChar(nmeaSentence, IndexOfCommaForWestOrEast);
+			   gpsCoordinates = GPSCoordinates(latitude, longitude, longitudeDirection, lattitudeDirection);
 		   }
 	   }
 	   return gpsCoordinates;
@@ -48,27 +49,31 @@ private:
 			if (nmeaMessage[i] == ',') { ++numCommas; }
 		}
 		const int ExpectedCommas = 12;
-		char messageStatus = getCSVEntry(nmeaMessage, IndexOfCommaForMessageStatus)[0]; //DELETE
-		return ExpectedCommas == numCommas && 'A' == messageStatus && strstr(nmeaMessage, "$GPRMC") != NULL;
+		const char messageStatus = getCSVEntryChar(nmeaMessage, IndexOfCommaForMessageStatus);
+		return ExpectedCommas == numCommas && OkayMessageStatus == messageStatus && strstr(nmeaMessage, "$GPRMC") != NULL;
 	}
 
-	char * getCSVEntry(const char * csvRow, const int nth) const {
+    float getCSVEntry(const char * csvRow, const int nth) const {
 		const char * startingIndexOfEntry = findComma(csvRow, nth) + 1;
 		const char * exclusiveEndingIndexOfEntry = findComma(csvRow, nth+1); //account for /n/r at end
 		const int entrySize = exclusiveEndingIndexOfEntry - startingIndexOfEntry;
 		if (entrySize != 0)  {
-			char * outputBuffer = new char[entrySize];
-			return strncpy(outputBuffer, startingIndexOfEntry, entrySize);
+			char outputBuffer[entrySize];
+			return atof(strncpy(outputBuffer, startingIndexOfEntry, entrySize));
 		}
-		else {
-			char * outputBuffer = new char[5];
-			return strcpy(outputBuffer, "-1.0");
-		}
+		else { return UNDEFINED_COORDINATE; }
 	}
 
-    const char * findComma(const char * csvRow, const int nth) const { //TODO BE: find out if should be passing in const pointer
+    char getCSVEntryChar(const char * csvRow, const int nth) const {
+		const char * startingIndexOfEntry = findComma(csvRow, nth) + 1;
+		const char * exclusiveEndingIndexOfEntry = findComma(csvRow, nth+1); //account for /n/r at end
+		const int entrySize = exclusiveEndingIndexOfEntry - startingIndexOfEntry;
+		return (entrySize != 0) ? startingIndexOfEntry[0] : UNDEFINED_DIRECTION;
+	}
+
+    const char * findComma(const char * csvRow, const int nth) const {
 		int numOfCommasSeen = 0;
-		for(const char * index = csvRow; index[0] != '\0'; ++index) { //handle wrong input
+		for(const char * index = csvRow; index[0] != '\0'; ++index) { //see if this is how a message actually ends!! or if return carriage
 			if (',' == index[0]) ++numOfCommasSeen;
 			if (numOfCommasSeen == nth) return index;
 		}
@@ -76,8 +81,8 @@ private:
 	}
 
     const bool successfullyGotAllFields(const struct GPSCoordinates gpsCoordinates) {
-    	return -1.0f != gpsCoordinates.latitude && -1.0f != gpsCoordinates.longitude && isValidLatitudeDirection(gpsCoordinates.northOrSouth)
-    	&& isValidLongitudeDirection(gpsCoordinates.westOrEast);
+    	return -1.0f != gpsCoordinates.latitude && -1.0f != gpsCoordinates.longitude
+    			&& isValidLatitudeDirection(gpsCoordinates.northOrSouth) && isValidLongitudeDirection(gpsCoordinates.westOrEast);
     }
 
     const bool isValidLatitudeDirection(const char direction) const { return 'N' == direction || 'S' == direction; }
@@ -85,20 +90,13 @@ private:
     const bool isValidLongitudeDirection(const char direction) const { return 'W' == direction || 'E' == direction; }
 
 
-//    const bool isAllAscii(const char * csvRow) const { doesn't fix anything
-//    	const int NmeaMessageLength = strlen(csvRow);
-//    	for (int i = 0; i < NmeaMessageLength; ++i) {
-//    		if (isascii(csvRow[i]) == 0) { return false; }
-//    	}
-//    	return true;
-//    }
-
 	SystemGPS * gps = NULL;
 	const int IndexOfCommaForMessageStatus = 2;
 	const int IndexOfCommaForLatitude = 3;
 	const int IndexOfCommaForNorthSouth = 4;
 	const int IndexOfCommaForLongitude = 5;
 	const int IndexOfCommaForWestOrEast = 6;
+	const char OkayMessageStatus = 'A';
 };
 
 #endif
