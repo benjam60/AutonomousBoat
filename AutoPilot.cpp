@@ -18,31 +18,45 @@ public: //should i make these heap or stack?
 		GPSCoordinates currentPosition;
 		currentPosition = gpsParser->waitAndGetNextPosition();
 		//get the direction
-		float heading = compass->getCurrentHeadingInDegrees();
-		float error = calculateError(currentPosition, wayPoint, heading);
-		int newRudderAngle = 90 + (error/2);
-		//calculate the error
-		rudder->movePosition(newRudderAngle);
+		int heading =(int) compass->getCurrentHeadingInDegrees();
+		if (!willInterceptWaypoint(currentPosition.latitude, wayPoint.latitude, heading)) {
+			float hypotenuseDistanceInMeters = calculateDistanceHaversineInMeters(currentPosition, wayPoint);
+			GPSCoordinates rightAngleCorner(0.0f, 1.0f, 'N', 'E');
+			float oppositeSideDistanceInMeters = calculateDistanceHaversineInMeters(rightAngleCorner, currentPosition);
+			int error = asin(oppositeSideDistanceInMeters/hypotenuseDistanceInMeters) * (180.0 / M_PI);
+			printf("The error is %d\n", error);
+			int newRudderAngle = 90 + (error/2);
+			//calculate the error
+			rudder->movePosition(newRudderAngle);
+		}
+		else {
+			printf("here!");
+			rudder->movePosition(heading);
+		}
 	}
 
 private:
-	float calculateError(GPSCoordinates currentPosition, GPSCoordinates wayPoint, float heading) { //assert divide by zero
+	//Haversine formula
+	float calculateDistanceHaversineInMeters(GPSCoordinates currentPosition, GPSCoordinates wayPoint) { //assert divide by zero
 		Radians relativeBearingLatitude = toRadians(currentPosition.latitude);
-		Radians relativeBearingLongitude = toRadians(wayPoint.longitude);
 		Radians	wayPointLatitude = toRadians(wayPoint.latitude);
-		Radians wayPointLongitude = toRadians(wayPoint.longitude);
-		Radians deltaLatitude = toRadians(wayPointLatitude - relativeBearingLatitude);
-		Radians deltaLongitude = toRadians(wayPointLongitude - relativeBearingLongitude);
+		Radians deltaLatitude = toRadians(wayPoint.latitude - currentPosition.latitude);
+		Radians deltaLongitude = toRadians(wayPoint.longitude - currentPosition.longitude);
 
-		float intermediate1 = sin(deltaLatitude/2.0) * sin(deltaLatitude/2.0) +
+		Radians intermediate1 = sin(deltaLatitude/2.0) * sin(deltaLatitude/2.0) +
 		cos(relativeBearingLatitude) * cos(wayPointLatitude) *
 		sin(deltaLongitude/2.0) * sin(deltaLongitude/2.0);
-		float intermediate2 = 2 * atan2(sqrt(intermediate1), sqrt(1-intermediate1));
+		Radians intermediate2 = 2.0 * atan2(sqrt(intermediate1), sqrt(1.0-intermediate1));
 
-		return EarthsRadius * intermediate2;
+		return (EarthsRadius * intermediate2)/ MetersInKilometer;
+	}
+	const bool willInterceptWaypoint(float currentLatitude, float wayPointLatitude, int heading) const { //add units to heading and latitude
+		return currentLatitude == wayPointLatitude && heading == 90;
+
 	}
 	inline float toRadians(float degrees) { return degrees * (M_PI / 180.0); }
 	const float EarthsRadius = 6371000.0f;
+	const float MetersInKilometer = 1.0f;
 	GPSParser * gpsParser;
 	OverrideableCompass * compass;
 	OverrideableRudder * rudder;

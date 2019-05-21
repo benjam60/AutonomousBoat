@@ -13,6 +13,7 @@
 #define UNDEFINED_COORDINATE -1.0f;
 #define UNDEFINED_DIRECTION 'U';
 
+//TODO: Add concept of degrees and radians!!!
 struct GPSCoordinates {
 	float latitude = UNDEFINED_COORDINATE;
 	float longitude = UNDEFINED_COORDINATE;
